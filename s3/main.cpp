@@ -28,6 +28,17 @@ const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 bool wireframeMode = false;
 
+enum CullMode {
+    CULL_BACK = GL_BACK,
+    CULL_FRONT = GL_FRONT
+};
+
+void setCullMode(CullMode mode) {
+    glEnable(GL_CULL_FACE); // Enable face culling
+    glCullFace(mode);       // Set the cull mode
+}
+
+
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
@@ -52,10 +63,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
     // glfw window creation
     // --------------------
@@ -88,6 +96,7 @@ int main()
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE);
 
     // build and compile shaders
     // -------------------------
@@ -174,6 +183,8 @@ int main()
 
     unsigned int earthTexture = loadTexture("resources/textures/planets/earth/earth_diffuse.jpg");
     unsigned int earthNormal = loadTexture("resources/textures/planets/earth/earth_normal.jpg");
+    unsigned int earthCloudTexture = loadTexture("resources/textures/planets/earth/earth_clouds.jpg");
+    unsigned int earthSpecular = loadTexture("resources/textures/planets/earth/earth_specular.jpg");
 
     // sun material
     // ------------
@@ -191,12 +202,11 @@ int main()
 
     // load models
     // -----------
-    Model ourModel("resources/objects/backpack.obj");
     Sphere sphere(1.0f, numSectors, numStacks, smoothShading, 3);
 
     // sun object
     Sphere sun(1.0f, 24, 9, true, 3);
-    glm::vec3 sunPosition = glm::vec3(0.0f, 10.0f, 0.0f);
+    glm::vec3 sunPosition = glm::vec3(10.0f, 0.0f, 0.0f);
     glm::mat4 sunModelMatrix = glm::translate(glm::mat4(1.0f), sunPosition);
 
     // draw in wireframe
@@ -218,7 +228,7 @@ int main()
     std::vector<float> frameTimes;
     float totalTime = 0.0f;
     const size_t maxFrames = 60;
-
+    int currentCullModeIdx = 0; // 0 for GL_BACK, 1 for GL_FRONT
 
     // render loop
     // -----------
@@ -239,6 +249,7 @@ int main()
             frameTimes.erase(frameTimes.begin());
         }
 
+        setCullMode(CULL_BACK);
         // Calculate the average FPS
         float averageFPS = frameTimes.size() / totalTime;
 
@@ -252,6 +263,21 @@ int main()
         // ------
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glEnable(GL_CULL_FACE);
+
+        switch (currentCullModeIdx) {
+        case 0:
+            glCullFace(GL_BACK);
+            break;
+        case 1:
+            glCullFace(GL_FRONT);
+            break;
+        default:
+            // You can set a default cull face or handle this case as needed
+            glCullFace(GL_BACK);
+            break;
+        }
 
         // don't forget to enable shader before setting uniforms
         ourShader.use();
@@ -275,11 +301,19 @@ int main()
         earthShader.setMat4("model", model);
         earthShader.setInt("earthTexture", 0);
         earthShader.setInt("earthNormalMap", 1);
+        earthShader.setInt("earthCloudTexture", 2);
+        earthShader.setInt("earthSpecular", 3);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, earthTexture);
+
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, earthNormal);        
+        glBindTexture(GL_TEXTURE_2D, earthNormal);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, earthCloudTexture);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, earthSpecular);
+
         sphere.draw();
 
         sunShader.use();
@@ -305,6 +339,8 @@ int main()
         glDepthFunc(GL_LESS); // set depth function back to default
 
 
+        const char* cullModeItems[] = { "Front face", "Back Face" };
+
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -329,6 +365,16 @@ int main()
         // Set a size for the second child window
         ImGui::BeginChild("Program", ImVec2(0, 50), true);
         ImGui::Checkbox("Wireframe Mode", &wireframeMode);
+        ImGui::Combo("Cull Mode", &currentCullModeIdx, cullModeItems, IM_ARRAYSIZE(cullModeItems));
+
+        // Change the actual OpenGL cull mode based on the selection
+        if (currentCullModeIdx == 0) {
+            setCullMode(CULL_BACK);
+        }
+        else if (currentCullModeIdx == 1) {
+            setCullMode(CULL_FRONT);
+        }
+
         ImGui::EndChild();
 
         ImGui::End();
