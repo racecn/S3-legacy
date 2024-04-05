@@ -102,6 +102,10 @@ int main()
     // -------------------------
     Shader ourShader("lighting.vs", "lighting.fs");
     Shader earthShader("shaders/earth.vs", "shaders/earth.fs");
+    Shader moonShader(
+        "shaders/moon.vs",
+        "shaders/moon.fs"
+    );
     Shader skyboxShader("skybox.vs", "skybox.fs");
     Shader sunShader("shaders/sun.vs", "shaders/sun.fs");
 
@@ -181,6 +185,8 @@ int main()
     };
     unsigned int cubemapTexture = loadCubemap(faces);
 
+    unsigned int moonTexture = loadTexture("resources/textures/planets/moon/moon_diffuse.jpg");
+
     unsigned int earthTexture = loadTexture("resources/textures/planets/earth/earth_diffuse.jpg");
     unsigned int earthNormal = loadTexture("resources/textures/planets/earth/earth_normal.jpg");
     unsigned int earthCloudTexture = loadTexture("resources/textures/planets/earth/earth_clouds.jpg");
@@ -208,6 +214,9 @@ int main()
     Sphere sun(1.0f, 24, 9, true, 3);
     glm::vec3 sunPosition = glm::vec3(10.0f, 0.0f, 0.0f);
     glm::mat4 sunModelMatrix = glm::translate(glm::mat4(1.0f), sunPosition);
+
+    Sphere moon(0.5f, 24, 9, true, 3);
+    glm::vec3 moonPosition = glm::vec3(0.0f, 5.0f, 0.0f);
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -294,6 +303,14 @@ int main()
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
         //ourModel.Draw(ourShader);
+
+        moonShader.use();
+        earthShader.setInt("earthTexture", 0);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, moonTexture);
+
+        moon.draw();
 
         earthShader.use();
         earthShader.setMat4("projection", projection);
@@ -498,6 +515,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 unsigned int loadCubemap(vector<std::string> faces)
 {
+    
     unsigned int textureID;
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
