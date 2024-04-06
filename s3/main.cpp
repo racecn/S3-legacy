@@ -21,7 +21,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 unsigned int loadTexture(const char* path);
-unsigned int loadCubemap(std::vector<std::string> faces);
+
 
 // settings
 const unsigned int SCR_WIDTH = 1280;
@@ -102,12 +102,10 @@ int main()
     // -------------------------
     Shader ourShader("lighting.vs", "lighting.fs");
     Shader earthShader("shaders/earth.vs", "shaders/earth.fs");
-    Shader moonShader(
-        "shaders/moon.vs",
-        "shaders/moon.fs"
-    );
     Shader skyboxShader("skybox.vs", "skybox.fs");
     Shader sunShader("shaders/sun.vs", "shaders/sun.fs");
+    Shader moonShader("shaders/sun.vs", "shaders/sun.fs");
+
 
     float skyboxVertices[] = {
         // positions          
@@ -174,16 +172,6 @@ int main()
 
     // load textures
 // -------------
-    vector<std::string> faces
-    {
-        "resources/textures/skybox/right.jpg",
-        "resources/textures/skybox/left.jpg",
-        "resources/textures/skybox/top.jpg",
-        "resources/textures/skybox/bottom.jpg",
-        "resources/textures/skybox/front.jpg",
-        "resources/textures/skybox/back.jpg",
-    };
-    unsigned int cubemapTexture = loadCubemap(faces);
 
     unsigned int moonTexture = loadTexture("resources/textures/planets/moon/moon_diffuse.jpg");
 
@@ -197,6 +185,8 @@ int main()
     glm::vec3 sunEmissiveColor = glm::vec3(1.0f, 1.0f, 0.2f);
     float sunEmissiveIntensity = 1.0f;
 
+    glm::vec3 moonEmissiveColor = glm::vec3(1.0f, 1.0f, 1.0f);
+    float moonEmissiveIntensity = 0.5f;
 
     // shader configuration
     // --------------------
@@ -208,15 +198,16 @@ int main()
 
     // load models
     // -----------
-    Sphere sphere(1.0f, numSectors, numStacks, smoothShading, 3);
+    Sphere sphere(0.0465f, numSectors, numStacks, smoothShading, 3);
 
     // sun object
-    Sphere sun(1.0f, 24, 9, true, 3);
-    glm::vec3 sunPosition = glm::vec3(10.0f, 0.0f, 0.0f);
+    Sphere sun(10.0f,36, 16, true, 3);
+    glm::vec3 sunPosition = glm::vec3(214.08045977f, 0.0f, 0.0f);
     glm::mat4 sunModelMatrix = glm::translate(glm::mat4(1.0f), sunPosition);
 
-    Sphere moon(0.5f, 24, 9, true, 3);
-    glm::vec3 moonPosition = glm::vec3(0.0f, 5.0f, 0.0f);
+    Sphere moon(0.01f, 24, 9, true, 3);
+    glm::vec3 moonPosition = glm::vec3(1.395f, 0.0f, 0.0f);
+    glm::mat4 moonModelMatrix = glm::translate(glm::mat4(1.0f), moonPosition);
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -292,7 +283,8 @@ int main()
         ourShader.use();
 
         // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 5000.0f); // Increase zFar to 5000.0f
+
         glm::mat4 view = camera.GetViewMatrix();
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
@@ -304,13 +296,7 @@ int main()
         ourShader.setMat4("model", model);
         //ourModel.Draw(ourShader);
 
-        moonShader.use();
-        earthShader.setInt("earthTexture", 0);
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, moonTexture);
-
-        moon.draw();
 
         earthShader.use();
         earthShader.setMat4("projection", projection);
@@ -340,20 +326,13 @@ int main()
         sunShader.setVec3("emissiveColor", sunEmissiveColor* sunEmissiveIntensity);
         sun.draw();
 
-        // draw skybox as last
-        glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-        skyboxShader.use();
-        view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
-        skyboxShader.setMat4("view", view);
-        skyboxShader.setMat4("projection", projection);
+        moonShader.use();
+        moonShader.setMat4("model", moonModelMatrix);
+        moonShader.setMat4("view", view);
+        moonShader.setMat4("projection", projection);
+        moonShader.setVec3("emissiveColor", moonEmissiveColor * moonEmissiveIntensity); // Set moon's emissive color
+        moon.draw();
 
-        // skybox cube
-        glBindVertexArray(skyboxVAO);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glBindVertexArray(0);
-        glDepthFunc(GL_LESS); // set depth function back to default
 
 
         const char* cullModeItems[] = { "Front face", "Back Face" };
@@ -458,7 +437,7 @@ void processInput(GLFWwindow* window)
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
+        camera.ProcessKeyboard(FORWARD, deltaTime / 2);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         camera.ProcessKeyboard(BACKWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
@@ -513,37 +492,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 }
 
 
-unsigned int loadCubemap(vector<std::string> faces)
-{
-    
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 
-    int width, height, nrComponents;
-    for (unsigned int i = 0; i < faces.size(); i++)
-    {
-        stbi_set_flip_vertically_on_load(false); // Flip the texture vertically
-        unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrComponents, 0);
-        if (data)
-        {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-            stbi_image_free(data);
-        }
-        else
-        {
-            std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
-            stbi_image_free(data);
-        }
-    }
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-    return textureID;
-}
 
 unsigned int loadTexture(const char* path)
 {

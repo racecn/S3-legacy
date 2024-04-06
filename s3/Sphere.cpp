@@ -40,45 +40,61 @@ void Sphere::draw() const {
 }
 
 void Sphere::buildVerticesSmooth() {
+    // Constants
     const float PI = acos(-1.0f);
+    const float lengthInv = 1.0f / radius;
 
+    // Clear previous data
     clearArrays();
 
-    float x, y, z, xy;                              // vertex position
-    float nx, ny, nz, lengthInv = 1.0f / radius;    // normal
-    float s, t;                                     // texCoord
+    // Variables for vertex position, normal, and texCoord
+    float x, y, z, xy;
+    float nx, ny, nz;
+    float s, t;
 
+    // Calculate step size for sectors and stacks
     float sectorStep = 2 * PI / sectorCount;
     float stackStep = PI / stackCount;
     float sectorAngle, stackAngle;
 
+    // Reserve memory to avoid frequent reallocations
+    vertices.reserve((sectorCount + 1) * (stackCount + 1) * 3);
+    normals.reserve((sectorCount + 1) * (stackCount + 1) * 3);
+    texCoords.reserve((sectorCount + 1) * (stackCount + 1) * 2);
+
+    // Calculate vertices, normals, and texture coordinates
     for (int i = 0; i <= stackCount; ++i) {
-        stackAngle = -PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
-        xy = radius * cosf(stackAngle);             // r * cos(u)
-        y = radius * sinf(stackAngle);              // r * sin(u)  // Changed from z to y
+        stackAngle = -PI / 2 - i * stackStep;
+        xy = radius * cosf(stackAngle);
+        y = radius * sinf(stackAngle);
 
         for (int j = 0; j <= sectorCount; ++j) {
-            sectorAngle = j * sectorStep;           // starting from 0 to 2pi
+            sectorAngle = j * sectorStep;
 
-            // vertex position
-            x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
-            z = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)  // Changed from y to z
+            // Calculate vertex position
+            x = xy * cosf(sectorAngle);
+            z = xy * sinf(sectorAngle);
             addVertex(x, y, z);
 
-            // normalized vertex normal
+            // Calculate normalized vertex normal
             nx = x * lengthInv;
-            ny = y * lengthInv;                     // Changed from nz to ny
-            nz = z * lengthInv;                     // Changed from ny to nz
+            ny = y * lengthInv;
+            nz = z * lengthInv;
             addNormal(nx, ny, nz);
 
-            // vertex tex coord between [0, 1]
-            s = 1.0f - (float)j / sectorCount;
-            t = (float)i / stackCount;
-            addTexCoord(s, t);
+            // Calculate texture coordinates if smooth
+            if (smooth) {
+                s = 1.0f - static_cast<float>(j) / sectorCount;
+                t = static_cast<float>(i) / stackCount;
+                addTexCoord(s, t);
+            }
         }
     }
 
-    // indices
+    // Reserve memory for indices
+    indices.reserve(stackCount * sectorCount * 6);
+
+    // Calculate indices for triangles
     unsigned int k1, k2;
     for (int i = 0; i < stackCount; ++i) {
         k1 = i * (sectorCount + 1);
@@ -95,6 +111,7 @@ void Sphere::buildVerticesSmooth() {
         }
     }
 
+    // Build interleaved vertices
     buildInterleavedVertices();
 }
 
@@ -207,25 +224,16 @@ void Sphere::setSmooth(bool smooth) {
 std::vector<float> Sphere::computeFaceNormal(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) {
     const float EPSILON = 0.000001f;
     std::vector<float> normal(3, 0.0f);
-    float nx, ny, nz;
 
-    float ex1 = x2 - x1;
-    float ey1 = y2 - y1;
-    float ez1 = z2 - z1;
-    float ex2 = x3 - x1;
-    float ey2 = y3 - y1;
-    float ez2 = z3 - z1;
+    glm::vec3 v1(x2 - x1, y2 - y1, z2 - z1);
+    glm::vec3 v2(x3 - x1, y3 - y1, z3 - z1);
 
-    nx = ey1 * ez2 - ez1 * ey2;
-    ny = ez1 * ex2 - ex1 * ez2;
-    nz = ex1 * ey2 - ey1 * ex2;
+    glm::vec3 result = glm::normalize(glm::cross(v1, v2));
 
-    float length = sqrtf(nx * nx + ny * ny + nz * nz);
-    if (length > EPSILON) {
-        float lengthInv = 1.0f / length;
-        normal[0] = nx * lengthInv;
-        normal[1] = ny * lengthInv;
-        normal[2] = nz * lengthInv;
+    if (glm::length(result) > EPSILON) {
+        normal[0] = result.x;
+        normal[1] = result.y;
+        normal[2] = result.z;
     }
 
     return normal;
