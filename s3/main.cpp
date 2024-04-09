@@ -105,7 +105,7 @@ int main()
     Shader skyboxShader("skybox.vs", "skybox.fs");
     Shader sunShader("shaders/sun.vs", "shaders/sun.fs");
     Shader moonShader("shaders/sun.vs", "shaders/sun.fs");
-
+    Shader marsShader("shaders/sun.vs", "shaders/sun.fs");
 
     float skyboxVertices[] = {
         // positions          
@@ -188,6 +188,9 @@ int main()
     glm::vec3 moonEmissiveColor = glm::vec3(1.0f, 1.0f, 1.0f);
     float moonEmissiveIntensity = 0.5f;
 
+    glm::vec3 mardsEmissiveColor = glm::vec3(1.0f, 0.5f, 0.5f);
+    float marsEmissiveIntensity = 1.0f;
+
     // shader configuration
     // --------------------
 
@@ -209,6 +212,11 @@ int main()
     glm::vec3 moonPosition = glm::vec3(1.395f, 0.0f, 0.0f);
     glm::mat4 moonModelMatrix = glm::translate(glm::mat4(1.0f), moonPosition);
 
+
+    Sphere mars(0.04, 24, 9, true, 3);
+    glm::vec3 marsPosition = glm::vec3(-20.0f, 0.0f, 0.0f);
+    glm::mat4 marsModelMatrix = glm::translate(glm::mat4(1.0f), marsPosition);
+
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -218,8 +226,8 @@ int main()
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
     // Setup Dear ImGui style
-    ImGui::StyleColorsLight();
-
+    ImGui::Spectrum::StyleColorsSpectrum();
+    ImGui::Spectrum::LoadFont(18);
 
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -333,6 +341,12 @@ int main()
         moonShader.setVec3("emissiveColor", moonEmissiveColor * moonEmissiveIntensity); // Set moon's emissive color
         moon.draw();
 
+        marsShader.use();
+        marsShader.setMat4("model", marsModelMatrix);
+        marsShader.setMat4("view", view);
+        marsShader.setMat4("projection", projection);
+        marsShader.setVec3("emissiveColor", mardsEmissiveColor * marsEmissiveIntensity);
+        mars.draw();
 
 
         const char* cullModeItems[] = { "Front face", "Back Face" };
