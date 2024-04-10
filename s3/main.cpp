@@ -355,9 +355,40 @@ int main()
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        bool my_tool_active = true;
 
         // Render the ImGUI components
-        ImGui::Begin("S3 Settings");
+        ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+        ImGui::Begin("S3 Settings", NULL, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+
+        if (ImGui::BeginMenuBar())
+        {
+            if (ImGui::BeginMenu("Simulation"))
+            {
+                if (ImGui::MenuItem("Start/Stop Simulation", "Space")) { /* Toggle simulation */ }
+                if (ImGui::MenuItem("Speed Up", "Up Arrow")) { /* Increase simulation speed */ }
+                if (ImGui::MenuItem("Slow Down", "Down Arrow")) { /* Decrease simulation speed */ }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("File"))
+            {
+                if (ImGui::MenuItem("Save", "Ctrl+S", false)) { /* Do stuff */ }
+                if (ImGui::MenuItem("Close", "Escape")) { glfwSetWindowShouldClose(window, true); }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("View"))
+            {
+                if (ImGui::MenuItem("Toggle Labels")) { /* Show or hide labels */ }
+                if (ImGui::MenuItem("Change Perspective")) { /* Switch viewing perspective */ }
+                if (ImGui::MenuItem("Show Orbits")) { /* Show or hide orbits */ }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Help")) {
+                if (ImGui::MenuItem("GitHub Documentation", "Ctrl+H", false)) { /* do stuff to link to that here*/ }
+                ImGui::EndMenu();
+            }
+            ImGui::EndMenuBar();
+        }
 
         // Set a size for the child window to ensure it's visible
         ImGui::BeginChild("Planets", ImVec2(0, 200), true);
@@ -373,7 +404,7 @@ int main()
         ImGui::Spacing();
 
         // Set a size for the second child window
-        ImGui::BeginChild("Program", ImVec2(0, 50), true);
+        ImGui::BeginChild("Program", ImVec2(0, 100), true);
         ImGui::Checkbox("Wireframe Mode", &wireframeMode);
         ImGui::Combo("Cull Mode", &currentCullModeIdx, cullModeItems, IM_ARRAYSIZE(cullModeItems));
 

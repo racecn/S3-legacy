@@ -54,6 +54,9 @@
     <ClCompile Include="glad.c">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="imgui\imgui_spectrum.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -98,14 +101,14 @@
     <ClInclude Include="Sphere.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SphereShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="linking\include\glad\glad.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_spectrum.h">
+      <Filter>Header Files\imgui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -154,5 +157,7 @@
     <None Include="shaders\texture.vs">
       <Filter>Source Files\shaders</Filter>
     </None>
+    <None Include="shaders\moon.fs" />
+    <None Include="shaders\moon.vs" />
   </ItemGroup>
 </Project>
