@@ -107,14 +107,14 @@ int main()
 
 
     std::vector<SpaceObject*> spaceObjects = {
-        new Planet(glm::vec3(0.0f), 5.0f, "Mercury", 0.383f, glm::vec3(0.8f, 0.6f, 0.4f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/mercury/mercury_diffuse.jpg", "", "", ""),
-        new Planet(glm::vec3(0.0f), 9.0f, "Venus", 0.949f, glm::vec3(0.9f, 0.8f, 0.6f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/venus/venus_diffuse.jpg", "", "", ""),
-        new Planet(glm::vec3(0.0f), 12.0f, "Earth", 1.0f, glm::vec3(0.6f, 0.7f, 1.0f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/earth/earth_diffuse.jpg", "", "", ""),
-        new Planet(glm::vec3(0.0f), 15.0f, "Mars", 0.532f, glm::vec3(0.9f, 0.5f, 0.2f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/mars/mars_diffuse.jpg", "", "", ""),
-        new Planet(glm::vec3(0.0f), 25.0f, "Jupiter", 11.21f, glm::vec3(0.8f, 0.6f, 0.4f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/jupiter/jupiter_diffuse.jpg", "", "", ""),
-        new Planet(glm::vec3(0.0f), 35.0f, "Saturn", 9.45f, glm::vec3(0.8f, 0.7f, 0.6f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/saturn/saturn_diffuse.jpg", "", "", ""),
-        new Planet(glm::vec3(0.0f), 45.0f, "Uranus", 4.01f, glm::vec3(0.6f, 0.8f, 0.9f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/uranus/uranus_diffuse.jpg", "", "", ""),
-        new Planet(glm::vec3(0.0f), 55.0f, "Neptune", 3.88f, glm::vec3(0.2f, 0.4f, 0.9f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/neptune/neptune_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 5.0f, "Mercury",true, 0.383f, glm::vec3(0.8f, 0.6f, 0.4f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/mercury/mercury_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 9.0f, "Venus", true,0.949f, glm::vec3(0.9f, 0.8f, 0.6f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/venus/venus_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 12.0f, "Earth", true,1.0f, glm::vec3(0.6f, 0.7f, 1.0f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/earth/earth_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 15.0f, "Mars", true,0.532f, glm::vec3(0.9f, 0.5f, 0.2f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/mars/mars_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 25.0f, "Jupiter", true,11.21f, glm::vec3(0.8f, 0.6f, 0.4f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/jupiter/jupiter_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 35.0f, "Saturn", true,9.45f, glm::vec3(0.8f, 0.7f, 0.6f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/saturn/saturn_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 45.0f, "Uranus", true,4.01f, glm::vec3(0.6f, 0.8f, 0.9f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/uranus/uranus_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 55.0f, "Neptune", true,3.88f, glm::vec3(0.2f, 0.4f, 0.9f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/neptune/neptune_diffuse.jpg", "", "", ""),
         // Add other planets here
         new Sun("Sun", 0.0f, 0, 10.0f, glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), 1.0f, "resources/textures/sun.jpg", "", "", "")
     };
@@ -233,14 +233,7 @@ int main()
     glm::vec3 sunPosition = glm::vec3(0.0f, 0.0f, 0.0f); // Position the sun at the center
     glm::mat4 sunModelMatrix = glm::translate(glm::mat4(1.0f), sunPosition);
 
-    // orbit circle for Mars
-    float marsOrbitRadius = 10.0f; // Radius of the orbit circle
-    int numCircleSegments = 36;
-    std::vector<glm::vec3> circleVertices = generateCircleVertices(marsOrbitRadius, numCircleSegments, sunPosition);
 
-    // Earth orbit parameters
-    float earthOrbitRadius = 15.0f;
-    int numEarthOrbitSegments = 72;
 
 
 
@@ -253,8 +246,6 @@ int main()
     glm::vec3 marsPosition = glm::vec3(10.0f, 0.0f, 0.0f);
     glm::mat4 marsModelMatrix = glm::translate(glm::mat4(1.0f), marsPosition );
 
-
-    std::vector<glm::vec3> earthOrbitVertices = generateCircleVertices(earthOrbitRadius, numEarthOrbitSegments, sunPosition);
 
 
 
@@ -284,29 +275,7 @@ int main()
     glGenBuffers(1, &circleVBO);
     glBindVertexArray(circleVAO);
 
-    marsOrbitRadius += marsOffset * deltaTime; // Adjust the delta time multiplier as needed
 
-    // Recalculate the Mars orbit vertices
-    circleVertices = generateCircleVertices(marsOrbitRadius, numCircleSegments, sunPosition);
-    glBindBuffer(GL_ARRAY_BUFFER, circleVBO);
-    glBufferData(GL_ARRAY_BUFFER, circleVertices.size() * sizeof(glm::vec3), circleVertices.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
-    glEnableVertexAttribArray(0);
-
-
-   
-    unsigned int earthOrbitVAO, earthOrbitVBO;
-
-
-    // Earth orbit
-    glGenVertexArrays(1, &earthOrbitVAO);
-    glGenBuffers(1, &earthOrbitVBO);
-    glBindVertexArray(earthOrbitVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, earthOrbitVBO);
-    glBufferData(GL_ARRAY_BUFFER, earthOrbitVertices.size() * sizeof(glm::vec3), earthOrbitVertices.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
-    glEnableVertexAttribArray(0);
 
 
 
@@ -425,12 +394,6 @@ int main()
         // Update the sun's model matrix
         sunModelMatrix = glm::translate(glm::mat4(1.0f), sunPosition);
 
-        // Update the orbit circle's position
-        circleVertices = generateCircleVertices(marsOrbitRadius, numCircleSegments, sunPosition);
-        glBindBuffer(GL_ARRAY_BUFFER, circleVBO);
-        glBufferData(GL_ARRAY_BUFFER, circleVertices.size() * sizeof(glm::vec3), circleVertices.data(), GL_STATIC_DRAW);
-
-
         // Render the sun
         sunShader.use();
         sunShader.setMat4("model", sunModelMatrix);
@@ -439,13 +402,7 @@ int main()
         sunShader.setVec3("emissiveColor", sunEmissiveColor * sunEmissiveIntensity);
         sun.draw();
 
-        // Render the Mars orbit
-        circleShader.use();
-        circleShader.setMat4("projection", projection);
-        circleShader.setMat4("view", view);
-        circleShader.setMat4("model", glm::mat4(1.0f)); // Identity matrix for the orbit's model matrix
-        glBindVertexArray(circleVAO);
-        glDrawArrays(GL_LINE_LOOP, 0, numCircleSegments);
+
 
         // Render the moon
         moonShader.use();
@@ -461,16 +418,6 @@ int main()
         marsShader.setMat4("projection", projection);
         marsShader.setVec3("emissiveColor", marsEmissiveColor * marsEmissiveIntensity);
         mars.draw();
-
-        circleShader.use();
-        circleShader.setMat4("projection", projection);
-        circleShader.setMat4("view", view);
-        circleShader.setMat4("model", glm::mat4(1.0f)); // Identity matrix for the orbit's model matrix
-
-        // Earth orbit
-        glBindVertexArray(earthOrbitVAO);
-        glDrawArrays(GL_LINE_LOOP, 0, numEarthOrbitSegments);
-
 
 
         const char* cullModeItems[] = { "Front face", "Back Face" };
@@ -515,10 +462,13 @@ int main()
             ImGui::EndMenuBar();
         }
 
-        ImGui::BeginChild("Info", ImVec2(0, 200), true);
-        ImGui::Text("Mouse X: %.2f", mouseX);
-        ImGui::Text("Mouse Y: %.2f", mouseY);
+        // gui container for the camera and mouse position
+        ImGui::BeginChild("Camera", ImVec2(0, 200), true);
+        ImGui::Text("Camera Position: (%.2f, %.2f, %.2f)", camera.Position.x, camera.Position.y, camera.Position.z);
+        ImGui::Text("Camera Front: (%.2f, %.2f, %.2f)", camera.Front.x, camera.Front.y, camera.Front.z);
+        ImGui::Text("Mouse Position: (%.2f, %.2f)", mouseX, mouseY);
         ImGui::EndChild();
+
 
         // Set a size for the child window to ensure it's visible
         ImGui::BeginChild("Planets", ImVec2(0, 200), true);
@@ -602,8 +552,15 @@ int main()
             }
         }
 
-
-        drawOrbitLine( 1.0, 24);
+        // for each planet that has orbiting enabled, draw the orbit line
+        for (const auto& planet : spaceObjects) {
+            if (auto* p = dynamic_cast<Planet*>(planet)) {
+                if (p->getOrbiting()) {
+					drawOrbitLine(p->getOrbitRadius(), 24);
+				}
+			}
+		}
+   
 
 
         // Rendering ImGui
@@ -643,23 +600,23 @@ void drawOrbitLine( float radius, int segments) {
 
     glm::vec3 center = glm::vec3(0.0f, 0.0f, 0.0f);
 
-    unsigned int moonOrbitVAO, moonOrbitVBO;
+    unsigned int orbitVAO, orbitVBO;
 
-    std::vector<glm::vec3> moonOrbitVertices = generateCircleVertices(radius, segments, center);
-    // Moon orbit
-    glGenVertexArrays(1, &moonOrbitVAO);
-    glGenBuffers(1, &moonOrbitVBO);
-    glBindVertexArray(moonOrbitVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, moonOrbitVBO);
-    glBufferData(GL_ARRAY_BUFFER, moonOrbitVertices.size() * sizeof(glm::vec3), moonOrbitVertices.data(), GL_STATIC_DRAW);
+    std::vector<glm::vec3> orbitVertices = generateCircleVertices(radius, segments, center);
+    
+    glGenVertexArrays(1, &orbitVAO);
+    glGenBuffers(1, &orbitVBO);
+    glBindVertexArray(orbitVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, orbitVBO);
+    glBufferData(GL_ARRAY_BUFFER, orbitVertices.size() * sizeof(glm::vec3), orbitVertices.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
     glEnableVertexAttribArray(0);
 
 
 
 
-
-    glBindVertexArray(moonOrbitVAO);
+    // Render the orbit circle
+    glBindVertexArray(orbitVAO);
     glDrawArrays(GL_LINE_LOOP, 0, segments);
 
 }
@@ -668,14 +625,19 @@ void drawOrbitLine( float radius, int segments) {
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow* window)
 {
+
+    // Close the window when the user presses the Escape key
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
+    // change the camera speed if the user holds the left shift key
     float cameraSpeed = camera.MovementSpeed * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
         cameraSpeed *= 2.0f; // Double the camera speed
     }
 
+
+    // WASD movement controls
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, cameraSpeed);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -684,6 +646,8 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, cameraSpeed);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, cameraSpeed);
+
+    // Toggle the cursor when the user presses the Tab key
     if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS) {
         cursorEnabled = !cursorEnabled;
         glfwSetInputMode(window, GLFW_CURSOR, cursorEnabled ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
@@ -707,6 +671,8 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
         float xpos = static_cast<float>(xposIn);
         float ypos = static_cast<float>(yposIn);
 
+        // Calculate the offset of the mouse position
+        // This is done to prevent the camera from jumping when the cursor is disabled
         if (firstMouse)
         {
             lastX = xpos;
@@ -733,7 +699,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 
 
-
+// the loadTexture function is to load a texture from a file path into a texture object in OpenGL
 unsigned int loadTexture(const char* path)
 {
     unsigned int textureID;
@@ -774,7 +740,12 @@ unsigned int loadTexture(const char* path)
 
 std::vector<glm::vec3> generateCircleVertices(float radius, int numSegments, glm::vec3 offset) {
     std::vector<glm::vec3> vertices;
+
+    // define the angle between each segment
     float angleIncrement = 2.0f * glm::pi<float>() / numSegments;
+
+    // for each segment, calculate the x and z coordinates 
+    // of the circle based on the radius and angle
     for (int i = 0; i < numSegments; ++i) {
         float angle = i * angleIncrement;
         float x = radius * glm::cos(angle) + offset.x;
