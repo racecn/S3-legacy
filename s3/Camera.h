@@ -114,6 +114,14 @@ public:
             Zoom = 45.0f;
     }
 
+    glm::vec2 getMousePosition(GLFWwindow* window) const
+    {
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+        return glm::vec2(xpos, ypos);
+    }
+
+
 private:
     // calculates the front vector from the Camera's (updated) Euler Angles
     void updateCameraVectors()

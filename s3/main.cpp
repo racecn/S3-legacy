@@ -10,6 +10,10 @@
 #include "Model.h"
 #include "Sphere.h"
 
+#include "spaceobject.h"
+#include "sun.h"
+#include "planet.h"
+
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -21,8 +25,9 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 unsigned int loadTexture(const char* path);
-
-
+std::vector<glm::vec3> generateCircleVertices(float radius, int numSegments, glm::vec3 offset);
+bool RaySphereIntersect(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, const glm::vec3& sphereCenter, float sphereRadius);
+void drawOrbitLine(float radius, int segments);
 // settings
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
@@ -54,6 +59,8 @@ float lastFrame = 0.0f;
 int numStacks = 18;
 int numSectors = 36;
 bool smoothShading = true;
+float marsOffset = 0;
+float marsRotation = 90.0f;
 
 int main()
 {
@@ -98,6 +105,22 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_MULTISAMPLE);
 
+
+    std::vector<SpaceObject*> spaceObjects = {
+        new Planet(glm::vec3(0.0f), 5.0f, "Mercury", 0.383f, glm::vec3(0.8f, 0.6f, 0.4f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/mercury/mercury_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 9.0f, "Venus", 0.949f, glm::vec3(0.9f, 0.8f, 0.6f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/venus/venus_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 12.0f, "Earth", 1.0f, glm::vec3(0.6f, 0.7f, 1.0f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/earth/earth_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 15.0f, "Mars", 0.532f, glm::vec3(0.9f, 0.5f, 0.2f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/mars/mars_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 25.0f, "Jupiter", 11.21f, glm::vec3(0.8f, 0.6f, 0.4f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/jupiter/jupiter_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 35.0f, "Saturn", 9.45f, glm::vec3(0.8f, 0.7f, 0.6f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/saturn/saturn_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 45.0f, "Uranus", 4.01f, glm::vec3(0.6f, 0.8f, 0.9f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/uranus/uranus_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 55.0f, "Neptune", 3.88f, glm::vec3(0.2f, 0.4f, 0.9f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/neptune/neptune_diffuse.jpg", "", "", ""),
+        // Add other planets here
+        new Sun("Sun", 0.0f, 0, 10.0f, glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), 1.0f, "resources/textures/sun.jpg", "", "", "")
+    };
+
+
+
     // build and compile shaders
     // -------------------------
     Shader ourShader("lighting.vs", "lighting.fs");
@@ -106,6 +129,8 @@ int main()
     Shader sunShader("shaders/sun.vs", "shaders/sun.fs");
     Shader moonShader("shaders/sun.vs", "shaders/sun.fs");
     Shader marsShader("shaders/sun.vs", "shaders/sun.fs");
+    Shader circleShader("circle.vs", "circle.fs"); // Assuming you have a Shader class for loading shaders
+
 
     float skyboxVertices[] = {
         // positions          
@@ -188,7 +213,7 @@ int main()
     glm::vec3 moonEmissiveColor = glm::vec3(1.0f, 1.0f, 1.0f);
     float moonEmissiveIntensity = 0.5f;
 
-    glm::vec3 mardsEmissiveColor = glm::vec3(1.0f, 0.5f, 0.5f);
+    glm::vec3 marsEmissiveColor = glm::vec3(1.0f, 0.5f, 0.5f);
     float marsEmissiveIntensity = 1.0f;
 
     // shader configuration
@@ -204,18 +229,34 @@ int main()
     Sphere sphere(0.0465f, numSectors, numStacks, smoothShading, 3);
 
     // sun object
-    Sphere sun(10.0f,36, 16, true, 3);
-    glm::vec3 sunPosition = glm::vec3(214.08045977f, 0.0f, 0.0f);
+    Sphere sun(1.0f, 36, 16, true, 3);
+    glm::vec3 sunPosition = glm::vec3(0.0f, 0.0f, 0.0f); // Position the sun at the center
     glm::mat4 sunModelMatrix = glm::translate(glm::mat4(1.0f), sunPosition);
 
-    Sphere moon(0.01f, 24, 9, true, 3);
+    // orbit circle for Mars
+    float marsOrbitRadius = 10.0f; // Radius of the orbit circle
+    int numCircleSegments = 36;
+    std::vector<glm::vec3> circleVertices = generateCircleVertices(marsOrbitRadius, numCircleSegments, sunPosition);
+
+    // Earth orbit parameters
+    float earthOrbitRadius = 15.0f;
+    int numEarthOrbitSegments = 72;
+
+
+
     glm::vec3 moonPosition = glm::vec3(1.395f, 0.0f, 0.0f);
+    Sphere moon(1.0f, 24, 9, true, 3);
     glm::mat4 moonModelMatrix = glm::translate(glm::mat4(1.0f), moonPosition);
 
 
-    Sphere mars(0.04, 24, 9, true, 3);
-    glm::vec3 marsPosition = glm::vec3(-20.0f, 0.0f, 0.0f);
-    glm::mat4 marsModelMatrix = glm::translate(glm::mat4(1.0f), marsPosition);
+    Sphere mars(1.0f, 24, 9, true, 3);
+    glm::vec3 marsPosition = glm::vec3(10.0f, 0.0f, 0.0f);
+    glm::mat4 marsModelMatrix = glm::translate(glm::mat4(1.0f), marsPosition );
+
+
+    std::vector<glm::vec3> earthOrbitVertices = generateCircleVertices(earthOrbitRadius, numEarthOrbitSegments, sunPosition);
+
+
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -237,6 +278,38 @@ int main()
     float totalTime = 0.0f;
     const size_t maxFrames = 60;
     int currentCullModeIdx = 0; // 0 for GL_BACK, 1 for GL_FRONT
+
+    unsigned int circleVAO, circleVBO;
+    glGenVertexArrays(1, &circleVAO);
+    glGenBuffers(1, &circleVBO);
+    glBindVertexArray(circleVAO);
+
+    marsOrbitRadius += marsOffset * deltaTime; // Adjust the delta time multiplier as needed
+
+    // Recalculate the Mars orbit vertices
+    circleVertices = generateCircleVertices(marsOrbitRadius, numCircleSegments, sunPosition);
+    glBindBuffer(GL_ARRAY_BUFFER, circleVBO);
+    glBufferData(GL_ARRAY_BUFFER, circleVertices.size() * sizeof(glm::vec3), circleVertices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(0);
+
+
+   
+    unsigned int earthOrbitVAO, earthOrbitVBO;
+
+
+    // Earth orbit
+    glGenVertexArrays(1, &earthOrbitVAO);
+    glGenBuffers(1, &earthOrbitVBO);
+    glBindVertexArray(earthOrbitVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, earthOrbitVBO);
+    glBufferData(GL_ARRAY_BUFFER, earthOrbitVertices.size() * sizeof(glm::vec3), earthOrbitVertices.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(0);
+
+
+
 
     // render loop
     // -----------
@@ -265,6 +338,8 @@ int main()
         // -----
         processInput(window);
         
+
+
 
 
         // render
@@ -297,13 +372,32 @@ int main()
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
 
+        double mouseX, mouseY;
+        glfwGetCursorPos(window, &mouseX, &mouseY);
+
+        // Convert to NDC
+        float ndcX = (2.0f * mouseX) / SCR_WIDTH - 1.0f;
+        float ndcY = 1.0f - (2.0f * mouseY) / SCR_HEIGHT;
+
+        // Convert to world space
+        glm::vec4 rayClip = glm::vec4(ndcX, ndcY, -1.0f, 1.0f);
+        glm::vec4 rayEye = glm::inverse(projection) * rayClip;
+        rayEye = glm::vec4(rayEye.x, rayEye.y, -1.0f, 0.0f);
+        glm::vec3 rayWorld = glm::vec3(glm::inverse(view) * rayEye);
+        rayWorld = glm::normalize(rayWorld);
+
+        // Render the ray
+        glLineWidth(2.0f);
+        glBegin(GL_LINES);
+        glVertex3f(camera.Position.x, camera.Position.y, camera.Position.z);
+        glVertex3f(camera.Position.x + rayWorld.x * 100.0f, camera.Position.y + rayWorld.y * 100.0f, camera.Position.z + rayWorld.z * 100.0f);
+            
         // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
         //ourModel.Draw(ourShader);
-
 
 
         earthShader.use();
@@ -327,13 +421,33 @@ int main()
 
         sphere.draw();
 
+
+        // Update the sun's model matrix
+        sunModelMatrix = glm::translate(glm::mat4(1.0f), sunPosition);
+
+        // Update the orbit circle's position
+        circleVertices = generateCircleVertices(marsOrbitRadius, numCircleSegments, sunPosition);
+        glBindBuffer(GL_ARRAY_BUFFER, circleVBO);
+        glBufferData(GL_ARRAY_BUFFER, circleVertices.size() * sizeof(glm::vec3), circleVertices.data(), GL_STATIC_DRAW);
+
+
+        // Render the sun
         sunShader.use();
         sunShader.setMat4("model", sunModelMatrix);
         sunShader.setMat4("view", view);
         sunShader.setMat4("projection", projection);
-        sunShader.setVec3("emissiveColor", sunEmissiveColor* sunEmissiveIntensity);
+        sunShader.setVec3("emissiveColor", sunEmissiveColor * sunEmissiveIntensity);
         sun.draw();
 
+        // Render the Mars orbit
+        circleShader.use();
+        circleShader.setMat4("projection", projection);
+        circleShader.setMat4("view", view);
+        circleShader.setMat4("model", glm::mat4(1.0f)); // Identity matrix for the orbit's model matrix
+        glBindVertexArray(circleVAO);
+        glDrawArrays(GL_LINE_LOOP, 0, numCircleSegments);
+
+        // Render the moon
         moonShader.use();
         moonShader.setMat4("model", moonModelMatrix);
         moonShader.setMat4("view", view);
@@ -345,8 +459,18 @@ int main()
         marsShader.setMat4("model", marsModelMatrix);
         marsShader.setMat4("view", view);
         marsShader.setMat4("projection", projection);
-        marsShader.setVec3("emissiveColor", mardsEmissiveColor * marsEmissiveIntensity);
+        marsShader.setVec3("emissiveColor", marsEmissiveColor * marsEmissiveIntensity);
         mars.draw();
+
+        circleShader.use();
+        circleShader.setMat4("projection", projection);
+        circleShader.setMat4("view", view);
+        circleShader.setMat4("model", glm::mat4(1.0f)); // Identity matrix for the orbit's model matrix
+
+        // Earth orbit
+        glBindVertexArray(earthOrbitVAO);
+        glDrawArrays(GL_LINE_LOOP, 0, numEarthOrbitSegments);
+
 
 
         const char* cullModeItems[] = { "Front face", "Back Face" };
@@ -356,6 +480,7 @@ int main()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         bool my_tool_active = true;
+
 
         // Render the ImGUI components
         ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
@@ -390,6 +515,11 @@ int main()
             ImGui::EndMenuBar();
         }
 
+        ImGui::BeginChild("Info", ImVec2(0, 200), true);
+        ImGui::Text("Mouse X: %.2f", mouseX);
+        ImGui::Text("Mouse Y: %.2f", mouseY);
+        ImGui::EndChild();
+
         // Set a size for the child window to ensure it's visible
         ImGui::BeginChild("Planets", ImVec2(0, 200), true);
         ImGui::Text("FPS: %.1f", averageFPS);
@@ -407,6 +537,7 @@ int main()
         ImGui::BeginChild("Program", ImVec2(0, 100), true);
         ImGui::Checkbox("Wireframe Mode", &wireframeMode);
         ImGui::Combo("Cull Mode", &currentCullModeIdx, cullModeItems, IM_ARRAYSIZE(cullModeItems));
+        ImGui::SliderFloat("Mars orbit offset", &marsOffset, -5.0f, 5.0f);
 
         // Change the actual OpenGL cull mode based on the selection
         if (currentCullModeIdx == 0) {
@@ -417,6 +548,15 @@ int main()
         }
 
         ImGui::EndChild();
+
+        ImGui::BeginChild("Keybinds");
+
+
+        ImGui::Text("W, A, S, D - Move camera");
+        ImGui::Text("Hold Left Shift - Double camera speed");
+
+        ImGui::EndChild();
+
 
         ImGui::End();
 
@@ -440,6 +580,31 @@ int main()
             sphere.setSmooth(smoothShading);
             prevShading = smoothShading;
         }
+
+
+        glm::vec3 rayOrigin = camera.Position; // Assuming camera.Position is the ray origin
+        glm::vec3 rayDirection = rayWorld;     // Assuming rayWorld is the ray direction
+
+
+        // Check for intersection with each planet
+        for (const auto& planet : spaceObjects) {
+            // Check if the current space object is a planet
+            if (auto* p = dynamic_cast<Planet*>(planet)) {
+                // Perform ray-sphere intersection test
+                if (RaySphereIntersect(rayOrigin, rayDirection, p->getPosition(), p->getRadius())) {
+                    // Collision detected, handle it (e.g., show information about the planet)
+                    ImGui::OpenPopup(p->getName().c_str());
+                    if (ImGui::BeginPopupModal(p->getName().c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                        ImGui::Text("You are hovering over %s!", p->getName().c_str());
+                        ImGui::EndPopup();
+                    }
+                }
+            }
+        }
+
+
+        drawOrbitLine( 1.0, 24);
+
 
         // Rendering ImGui
         ImGui::Render();
@@ -474,6 +639,31 @@ int main()
     return 0;
 }
 
+void drawOrbitLine( float radius, int segments) {
+
+    glm::vec3 center = glm::vec3(0.0f, 0.0f, 0.0f);
+
+    unsigned int moonOrbitVAO, moonOrbitVBO;
+
+    std::vector<glm::vec3> moonOrbitVertices = generateCircleVertices(radius, segments, center);
+    // Moon orbit
+    glGenVertexArrays(1, &moonOrbitVAO);
+    glGenBuffers(1, &moonOrbitVBO);
+    glBindVertexArray(moonOrbitVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, moonOrbitVBO);
+    glBufferData(GL_ARRAY_BUFFER, moonOrbitVertices.size() * sizeof(glm::vec3), moonOrbitVertices.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(0);
+
+
+
+
+
+    glBindVertexArray(moonOrbitVAO);
+    glDrawArrays(GL_LINE_LOOP, 0, segments);
+
+}
+
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow* window)
@@ -481,14 +671,19 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
+    float cameraSpeed = camera.MovementSpeed * deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        cameraSpeed *= 2.0f; // Double the camera speed
+    }
+
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime / 2);
+        camera.ProcessKeyboard(FORWARD, cameraSpeed);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
+        camera.ProcessKeyboard(BACKWARD, cameraSpeed);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
+        camera.ProcessKeyboard(LEFT, cameraSpeed);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);
+        camera.ProcessKeyboard(RIGHT, cameraSpeed);
     if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS) {
         cursorEnabled = !cursorEnabled;
         glfwSetInputMode(window, GLFW_CURSOR, cursorEnabled ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
@@ -575,4 +770,32 @@ unsigned int loadTexture(const char* path)
     }
 
     return textureID;
+}
+
+std::vector<glm::vec3> generateCircleVertices(float radius, int numSegments, glm::vec3 offset) {
+    std::vector<glm::vec3> vertices;
+    float angleIncrement = 2.0f * glm::pi<float>() / numSegments;
+    for (int i = 0; i < numSegments; ++i) {
+        float angle = i * angleIncrement;
+        float x = radius * glm::cos(angle) + offset.x;
+        float y = offset.y;
+        float z = radius * glm::sin(angle) + offset.z;
+        vertices.push_back(glm::vec3(x, y, z));
+    }
+    return vertices;
+}
+
+
+bool RaySphereIntersect(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, const glm::vec3& sphereCenter, float sphereRadius)
+{
+    glm::vec3 L = sphereCenter - rayOrigin;
+    float tca = glm::dot(L, rayDirection);
+    float d2 = glm::dot(L, L) - tca * tca;
+    float radius2 = sphereRadius * sphereRadius;
+    if (d2 > radius2) return false;
+    float thc = sqrt(radius2 - d2);
+    float t0 = tca - thc;
+    float t1 = tca + thc;
+    if (t0 < 0 && t1 < 0) return false; // Both intersections are behind the ray
+    return true;
 }

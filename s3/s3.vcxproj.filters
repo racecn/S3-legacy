@@ -110,6 +110,15 @@
     <ClInclude Include="imgui\imgui_spectrum.h">
       <Filter>Header Files\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="spaceobject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sun.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="planet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="assimp-vc143-mtd.dll">
@@ -159,5 +168,11 @@
     </None>
     <None Include="shaders\moon.fs" />
     <None Include="shaders\moon.vs" />
+    <None Include="shaders\circle.fs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\circle.vs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
