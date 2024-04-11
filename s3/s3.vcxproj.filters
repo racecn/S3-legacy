@@ -174,5 +174,11 @@
     <None Include="shaders\circle.vs">
       <Filter>Source Files\shaders</Filter>
     </None>
+    <None Include="shaders\planet.fs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\planet.vs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

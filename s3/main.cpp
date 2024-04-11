@@ -54,6 +54,7 @@ bool cursorEnabled = false;
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+float simulationSpeed = 1.0f;
 
 // sphere
 int numStacks = 18;
@@ -107,14 +108,14 @@ int main()
 
 
     std::vector<SpaceObject*> spaceObjects = {
-        new Planet(glm::vec3(0.0f), 5.0f, "Mercury",true, 0.383f, glm::vec3(0.8f, 0.6f, 0.4f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/mercury/mercury_diffuse.jpg", "", "", ""),
-        new Planet(glm::vec3(0.0f), 9.0f, "Venus", true,0.949f, glm::vec3(0.9f, 0.8f, 0.6f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/venus/venus_diffuse.jpg", "", "", ""),
-        new Planet(glm::vec3(0.0f), 12.0f, "Earth", true,1.0f, glm::vec3(0.6f, 0.7f, 1.0f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/earth/earth_diffuse.jpg", "", "", ""),
-        new Planet(glm::vec3(0.0f), 15.0f, "Mars", true,0.532f, glm::vec3(0.9f, 0.5f, 0.2f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/mars/mars_diffuse.jpg", "", "", ""),
-        new Planet(glm::vec3(0.0f), 25.0f, "Jupiter", true,11.21f, glm::vec3(0.8f, 0.6f, 0.4f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/jupiter/jupiter_diffuse.jpg", "", "", ""),
-        new Planet(glm::vec3(0.0f), 35.0f, "Saturn", true,9.45f, glm::vec3(0.8f, 0.7f, 0.6f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/saturn/saturn_diffuse.jpg", "", "", ""),
-        new Planet(glm::vec3(0.0f), 45.0f, "Uranus", true,4.01f, glm::vec3(0.6f, 0.8f, 0.9f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/uranus/uranus_diffuse.jpg", "", "", ""),
-        new Planet(glm::vec3(0.0f), 55.0f, "Neptune", true,3.88f, glm::vec3(0.2f, 0.4f, 0.9f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/neptune/neptune_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 1.0f, "Mercury",true, 0.383f, glm::vec3(0.8f, 0.6f, 0.4f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/mercury/mercury_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 1.0f, "Venus", true,0.949f, glm::vec3(0.9f, 0.8f, 0.6f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/venus/venus_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 1.0f, "Earth", true,1.0f, glm::vec3(0.6f, 0.7f, 1.0f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/earth/earth_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 1.0f, "Mars", true,0.532f, glm::vec3(0.9f, 0.5f, 0.2f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/mars/mars_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 1.0f, "Jupiter", true,11.21f, glm::vec3(0.8f, 0.6f, 0.4f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/jupiter/jupiter_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 1.0f, "Saturn", true,9.45f, glm::vec3(0.8f, 0.7f, 0.6f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/saturn/saturn_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 1.0f, "Uranus", true,4.01f, glm::vec3(0.6f, 0.8f, 0.9f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/uranus/uranus_diffuse.jpg", "", "", ""),
+        new Planet(glm::vec3(0.0f), 1.0f, "Neptune", true,3.88f, glm::vec3(0.2f, 0.4f, 0.9f), glm::vec3(0.0f), 0.0f, "resources/textures/planets/neptune/neptune_diffuse.jpg", "", "", ""),
         // Add other planets here
         new Sun("Sun", 0.0f, 0, 10.0f, glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), 1.0f, "resources/textures/sun.jpg", "", "", "")
     };
@@ -127,8 +128,16 @@ int main()
     Shader earthShader("shaders/earth.vs", "shaders/earth.fs");
     Shader skyboxShader("skybox.vs", "skybox.fs");
     Shader sunShader("shaders/sun.vs", "shaders/sun.fs");
+
     Shader moonShader("shaders/sun.vs", "shaders/sun.fs");
     Shader marsShader("shaders/sun.vs", "shaders/sun.fs");
+    Shader jupiterShader("shaders/sun.vs", "shaders/sun.fs");
+    Shader saturnShader("shaders/sun.vs", "shaders/sun.fs");
+    Shader uranusShader("shaders/sun.vs", "shaders/sun.fs");
+    Shader neptuneShader("shaders/sun.vs", "shaders/sun.fs");
+    Shader venusShader("shaders/sun.vs", "shaders/sun.fs");
+    Shader mercuryShader("shaders/sun.vs", "shaders/sun.fs");
+
     Shader circleShader("circle.vs", "circle.fs"); // Assuming you have a Shader class for loading shaders
 
 
@@ -216,6 +225,32 @@ int main()
     glm::vec3 marsEmissiveColor = glm::vec3(1.0f, 0.5f, 0.5f);
     float marsEmissiveIntensity = 1.0f;
 
+    // Mercury - Gray
+    glm::vec3 mercuryEmissiveColor = glm::vec3(0.5f, 0.5f, 0.5f);
+    float mercuryEmissiveIntensity = 1.0f;
+
+    // Venus - Yellowish-White
+    glm::vec3 venusEmissiveColor = glm::vec3(1.0f, 1.0f, 0.8f);
+    float venusEmissiveIntensity = 1.0f;
+
+
+    // Jupiter - Light Brown
+    glm::vec3 jupiterEmissiveColor = glm::vec3(0.8f, 0.6f, 0.4f);
+    float jupiterEmissiveIntensity = 1.0f;
+
+    // Saturn - Pale Gold
+    glm::vec3 saturnEmissiveColor = glm::vec3(0.9f, 0.8f, 0.6f);
+    float saturnEmissiveIntensity = 1.0f;
+
+    // Uranus - Pale Blue
+    glm::vec3 uranusEmissiveColor = glm::vec3(0.6f, 0.8f, 0.9f);
+    float uranusEmissiveIntensity = 1.0f;
+
+    // Neptune - Deep Blue
+    glm::vec3 neptuneEmissiveColor = glm::vec3(0.2f, 0.4f, 0.9f);
+    float neptuneEmissiveIntensity = 1.0f;
+
+
     // shader configuration
     // --------------------
 
@@ -227,10 +262,12 @@ int main()
     // load models
     // -----------
     Sphere sphere(0.0465f, numSectors, numStacks, smoothShading, 3);
+    glm::vec3 earthPosition = glm::vec3(10.0f - spaceObjects[2]->getOrbitRadius(), 0.0f, 0.0f);
+    glm::mat4 earthModelMatrix = glm::translate(glm::mat4(1.0f), earthPosition);
 
     // sun object
-    Sphere sun(1.0f, 36, 16, true, 3);
-    glm::vec3 sunPosition = glm::vec3(0.0f, 0.0f, 0.0f); // Position the sun at the center
+    Sphere sun(.05f, 36, 16, true, 3);
+    glm::vec3 sunPosition = glm::vec3(10.0f, 0.0f, 0.0f); // Position the sun at the center
     glm::mat4 sunModelMatrix = glm::translate(glm::mat4(1.0f), sunPosition);
 
 
@@ -238,15 +275,35 @@ int main()
 
 
     glm::vec3 moonPosition = glm::vec3(1.395f, 0.0f, 0.0f);
-    Sphere moon(1.0f, 24, 9, true, 3);
+    Sphere moon(0.025f, 24, 9, true, 3);
     glm::mat4 moonModelMatrix = glm::translate(glm::mat4(1.0f), moonPosition);
 
 
-    Sphere mars(1.0f, 24, 9, true, 3);
-    glm::vec3 marsPosition = glm::vec3(10.0f, 0.0f, 0.0f);
-    glm::mat4 marsModelMatrix = glm::translate(glm::mat4(1.0f), marsPosition );
+    // Mars
+    Sphere mars(0.05f, numSectors / 2, numStacks / 2, smoothShading, 3);
+    glm::vec3 marsPosition = glm::vec3(10.0f - spaceObjects[3]->getOrbitRadius(), 0.0f, 0.0f);
 
+    glm::mat4 marsModelMatrix = glm::translate(glm::mat4(1.0f), marsPosition);
 
+    // Jupiter
+    Sphere jupiter(0.3f, numSectors, numStacks, smoothShading, 3);
+    glm::vec3 jupiterPosition = glm::vec3(10.0f - spaceObjects[4]->getOrbitRadius(), 0.0f, 0.0f);
+    glm::mat4 jupiterModelMatrix = glm::translate(glm::mat4(1.0f), jupiterPosition);
+
+    // Saturn
+    Sphere saturn(0.25f, numSectors, numStacks, smoothShading, 3);
+    glm::vec3 saturnPosition = glm::vec3(10.0f - spaceObjects[5]->getOrbitRadius(), 0.0f, 0.0f);
+    glm::mat4 saturnModelMatrix = glm::translate(glm::mat4(1.0f), saturnPosition);
+
+    // Uranus
+    Sphere uranus(0.2f, numSectors, numStacks, smoothShading, 3);
+    glm::vec3 uranusPosition = glm::vec3(10.0f - spaceObjects[6]->getOrbitRadius(), 0.0f, 0.0f);
+    glm::mat4 uranusModelMatrix = glm::translate(glm::mat4(1.0f), uranusPosition);
+
+    // Neptune
+    Sphere neptune(0.2f, numSectors, numStacks, smoothShading, 3);
+    glm::vec3 neptunePosition = glm::vec3(10.0f - spaceObjects[7]->getOrbitRadius(), 0.0f, 0.0f);
+    glm::mat4 neptuneModelMatrix = glm::translate(glm::mat4(1.0f), neptunePosition);
 
 
     // draw in wireframe
@@ -287,7 +344,7 @@ int main()
         // per-frame time logic
         // --------------------
         float currentFrame = static_cast<float>(glfwGetTime());
-        deltaTime = currentFrame - lastFrame;
+        deltaTime = (currentFrame - lastFrame) * simulationSpeed;
         lastFrame = currentFrame;
 
         // Update the buffer
@@ -307,6 +364,9 @@ int main()
         // -----
         processInput(window);
         
+        for (auto& planet : spaceObjects) {
+            planet->update(deltaTime);
+        }
 
 
 
@@ -372,7 +432,7 @@ int main()
         earthShader.use();
         earthShader.setMat4("projection", projection);
         earthShader.setMat4("view", view);
-        earthShader.setMat4("model", model);
+        earthShader.setMat4("model", earthModelMatrix);
         earthShader.setInt("earthTexture", 0);
         earthShader.setInt("earthNormalMap", 1);
         earthShader.setInt("earthCloudTexture", 2);
@@ -413,12 +473,45 @@ int main()
         moon.draw();
 
         marsShader.use();
-        marsShader.setMat4("model", marsModelMatrix);
+        marsShader.setMat4("model", spaceObjects[3]->getModelMatrix(marsModelMatrix));
         marsShader.setMat4("view", view);
         marsShader.setMat4("projection", projection);
         marsShader.setVec3("emissiveColor", marsEmissiveColor * marsEmissiveIntensity);
         mars.draw();
 
+
+
+        // Jupiter
+        jupiterShader.use();
+        jupiterShader.setMat4("model", spaceObjects[4]->getModelMatrix(jupiterModelMatrix));
+        jupiterShader.setMat4("view", view);
+        jupiterShader.setMat4("projection", projection);
+        jupiterShader.setVec3("emissiveColor", jupiterEmissiveColor* jupiterEmissiveIntensity);
+        jupiter.draw();
+
+        // Saturn
+        saturnShader.use();
+        saturnShader.setMat4("model", spaceObjects[5]->getModelMatrix(saturnModelMatrix));
+        saturnShader.setMat4("view", view);
+        saturnShader.setMat4("projection", projection);
+        saturnShader.setVec3("emissiveColor", saturnEmissiveColor* saturnEmissiveIntensity);
+        saturn.draw();
+
+        // Uranus
+        uranusShader.use();
+        uranusShader.setMat4("model", spaceObjects[6]->getModelMatrix(uranusModelMatrix));
+        uranusShader.setMat4("view", view);
+        uranusShader.setMat4("projection", projection);
+        uranusShader.setVec3("emissiveColor", uranusEmissiveColor* uranusEmissiveIntensity);
+        uranus.draw();
+
+        // Neptune
+        neptuneShader.use();
+        neptuneShader.setMat4("model", spaceObjects[7]->getModelMatrix(neptuneModelMatrix));
+        neptuneShader.setMat4("view", view);
+        neptuneShader.setMat4("projection", projection);
+        neptuneShader.setVec3("emissiveColor", neptuneEmissiveColor* neptuneEmissiveIntensity);
+        neptune.draw();
 
         const char* cullModeItems[] = { "Front face", "Back Face" };
 
@@ -499,12 +592,21 @@ int main()
 
         ImGui::EndChild();
 
-        ImGui::BeginChild("Keybinds");
+        ImGui::BeginChild("Keybinds", ImVec2(0,100), true);
 
 
         ImGui::Text("W, A, S, D - Move camera");
         ImGui::Text("Hold Left Shift - Double camera speed");
 
+        ImGui::EndChild();
+
+        // rendering of the simulation control section
+        //speed up and slow down the simulation
+        //pause and play the simulation
+        
+        ImGui::BeginChild("Simulation", ImVec2(0, 100), true);
+        ImGui::Text("Simulation Speed: %.2f", simulationSpeed);
+        ImGui::SliderFloat("Speed", &simulationSpeed, 0.001f, 2.0f);
         ImGui::EndChild();
 
 
@@ -551,7 +653,7 @@ int main()
                 }
             }
         }
-
+        sunShader.use();
         // for each planet that has orbiting enabled, draw the orbit line
         for (const auto& planet : spaceObjects) {
             if (auto* p = dynamic_cast<Planet*>(planet)) {
@@ -759,14 +861,27 @@ std::vector<glm::vec3> generateCircleVertices(float radius, int numSegments, glm
 
 bool RaySphereIntersect(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, const glm::vec3& sphereCenter, float sphereRadius)
 {
-    glm::vec3 L = sphereCenter - rayOrigin;
-    float tca = glm::dot(L, rayDirection);
-    float d2 = glm::dot(L, L) - tca * tca;
-    float radius2 = sphereRadius * sphereRadius;
-    if (d2 > radius2) return false;
-    float thc = sqrt(radius2 - d2);
+    glm::vec3 originToCenter = sphereCenter - rayOrigin;
+    float tca = glm::dot(originToCenter, rayDirection);
+    float distanceSquaredFromCenter = glm::dot(originToCenter, originToCenter) - tca * tca;
+    float radiusSquared = sphereRadius * sphereRadius;
+
+    if (distanceSquaredFromCenter > radiusSquared) {
+        std::cout << "No intersection: Point is outside the sphere" << std::endl;
+        return false;
+    }
+
+    float thc = sqrt(radiusSquared - distanceSquaredFromCenter);
     float t0 = tca - thc;
     float t1 = tca + thc;
-    if (t0 < 0 && t1 < 0) return false; // Both intersections are behind the ray
+
+    std::cout << "tca: " << tca << ", distanceSquaredFromCenter: " << distanceSquaredFromCenter
+        << ", thc: " << thc << ", t0: " << t0 << ", t1: " << t1 << std::endl;
+
+    if (t0 < 0 && t1 < 0) {
+        std::cout << "No intersection: Both intersections are behind the ray" << std::endl;
+        return false;
+    }
+
     return true;
 }

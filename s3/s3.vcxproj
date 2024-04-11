@@ -189,6 +189,8 @@
     <None Include="shaders\light_cube.vs" />
     <None Include="shaders\moon.fs" />
     <None Include="shaders\moon.vs" />
+    <None Include="shaders\planet.fs" />
+    <None Include="shaders\planet.vs" />
     <None Include="shaders\skybox.fs" />
     <None Include="shaders\skybox.vs" />
     <None Include="shaders\sun.fs" />

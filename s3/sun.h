@@ -9,6 +9,14 @@ public:
     Sun(const std::string& name, float radius, float orbitalPeriod, float distanceFromSun, const glm::vec3& diffuseColor, const glm::vec3& specularColor, float shininess, const std::string& diffuseTexture, const std::string& specularTexture, const std::string& normalTexture, const std::string& emissionTexture)
         : SpaceObject(glm::vec3(0.0f), radius, name), orbitalPeriod(orbitalPeriod), distanceFromSun(distanceFromSun), diffuseColor(diffuseColor), specularColor(specularColor), shininess(shininess), diffuseTexture(diffuseTexture), specularTexture(specularTexture), normalTexture(normalTexture), emissionTexture(emissionTexture) {}
 
+    float getOrbitRadius() const override {
+        return 0.0f;
+    }
+
+    glm::mat4 getModelMatrix(const glm::mat4& initialModelMatrix) const override {
+        return glm::mat4(1.0f);
+    }
+
 
     bool isMouseOver(const glm::vec2& mousePos) const override {
         float distance = glm::length(glm::vec2(position.x, position.y) - mousePos);

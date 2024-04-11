@@ -22,7 +22,26 @@ public:
         isOrbiting(isOrbiting),
         color(color), specularColor(specularColor), shininess(shininess),
         diffuseTexture(diffuseTexture), specularTexture(specularTexture),
-        normalTexture(normalTexture), emissionTexture(emissionTexture) {}
+        normalTexture(normalTexture), emissionTexture(emissionTexture),
+        rotationSpeed(rotationSpeed), rotationAngle(0.0f) {}
+
+
+
+    void update(float deltaTime) override {
+        // Increment the rotation angle based on the rotation speed
+        rotationAngle += rotationSpeed * deltaTime;
+        // Wrap the rotation angle to keep it within 0 to 360 degrees
+        if (rotationAngle > 360.0f) {
+            rotationAngle -= 360.0f;
+        }
+    }
+
+    glm::mat4 getModelMatrix(const glm::mat4& initialModelMatrix) const override {
+        glm::mat4 model = initialModelMatrix;
+        model = glm::rotate(model, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f)); // Rotate around the y-axis
+
+        return model;
+    }
 
 
     bool isMouseOver(const glm::vec2& mousePos) const override {
@@ -59,6 +78,8 @@ private:
     std::string specularTexture;
     std::string normalTexture;
     std::string emissionTexture;
+    float rotationSpeed;
+    float rotationAngle;
 };
 
 #endif // PLANET_H
